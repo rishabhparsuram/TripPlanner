@@ -39,32 +39,40 @@ public class MainActivity extends AppCompatActivity {
     private TextView hotel;
     private TextView restaurant;
     private TextView weather;
+    private EditText state;
+    private double latitude;
+    private double longitude;
+    private String api_key = "AIzaSyAwRH6Junl7BV235LakrC3jzV7fCQeEtDg";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         city = (EditText) findViewById(R.id.cityName);
+        state = (EditText) findViewById(R.id.stateName);
         hotel = (TextView) findViewById(R.id.hotels);
         weather = (TextView) findViewById(R.id.weather);
         touchme = (Button) findViewById(R.id.enter);
         restaurant = (TextView) findViewById(R.id.FoodPlaces);
         requestQueue = Volley.newRequestQueue(this);
-
+        final String findplace_url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=" + city + "%20" + state + "&inputtype=textquery&fields=geometry&key=" + api_key;
         touchme.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 try {
                     JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                             Request.Method.GET,
-                            "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=Urbana,%20IL&inputtype=textquery&fields=photos,formatted_address,name,rating,opening_hours,geometry&key=AIzaSyAwRH6Junl7BV235LakrC3jzV7fCQeEtDg",
+                            findplace_url,
                             null,
                             new Response.Listener<JSONObject>() {
                                 @Override
                                 public void onResponse(final JSONObject response){
                                     try{
                                         JSONObject abc = response.getJSONArray("candidates").getJSONObject(0);
-                                        restaurant.setText(abc.get("geometry").toString());
+                                        JSONObject geometry = (JSONObject) abc.get("geometry");
+                                        JSONObject location = (JSONObject) geometry.get("location");
+                                        latitude = location.getDouble("lat");
+                                        longitude = location.getDouble("lng");
                                         Log.d(TAG, abc.get("geometry").toString());
 
                                     }
@@ -72,8 +80,6 @@ public class MainActivity extends AppCompatActivity {
                                         e.printStackTrace();
 
                                     }
-
-                                    //hotel.setText(response.toString());
                                 }
                             }, new Response.ErrorListener() {
                         @Override
@@ -89,33 +95,48 @@ public class MainActivity extends AppCompatActivity {
                     //restaurant.setText("Please enter a Valid City");
                     //weather.setText("Please enter a Valid City");
                 }
-            }
+                String nearbysearch_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" + latitude + "," + longitude + "&radius=1500&type=restaurant&keyword=cruise&key=" + api_key;
+                try {
+                    JsonObjectRequest jsonObjectRequest1 = new JsonObjectRequest(
+                            Request.Method.GET,
+                            nearbysearch_url,
+                            null,
+                            new Response.Listener<JSONObject>() {
+                                @Override
+                                public void onResponse(final JSONObject response){
+                                    try{
+                                        JSONObject def = response.getJSONArray("results").getJSONObject(0);
+                                        JSONObject rest = (JSONObject) def.get("name");
+                                        String name = rest.toString();
+                                        restaurant.setText(name);
+                                        //JSONObject abc = response.getJSONArray("candidates").getJSONObject(0);
+                                        //JSONObject geometry = (JSONObject) abc.get("geometry");
+                                        //JSONObject location = (JSONObject) geometry.get("location");
+                                        //latitude = location.getDouble("lat");
+                                        //longitude = location.getDouble("lng");
+                                        //restaurant.setText(Double.toString(longitude));
 
-            ;
-        /*void startAPICall() {
-            try {
-                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
-                        Request.Method.GET,
-                        "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=Urbana,%20IL&inputtype=textquery&fields=photos,formatted_address,name,rating,opening_hours,geometry&key=AIzaSyAwRH6Junl7BV235LakrC3jzV7fCQeEtDg",
-                        null,
-                        new Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(final JSONObject response) {
-                                Log.d(TAG, response.toString());
-                            }
+                                        Log.d(TAG, def.get("name").toString());
+
+                                    }
+                                    catch (JSONException e) {
+                                        e.printStackTrace();
+
+                                    }
+
+                                    //hotel.setText(response.toString());
+                                }
                             }, new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(final VolleyError error) {
-                                Log.w(TAG, error.toString());
-                            }
-                        });
-            } catch (Exception e) {
-                e.printStackTrace();
-                hotel.setText("Please enter a Valid City");
-                restaurant.setText("Please enter a Valid City");
-                weather.setText("Please enter a Valid City");
+                        @Override
+                        public void onErrorResponse(final VolleyError error) {
+                            Log.w(TAG, error.toString());
+                        }
+                    });
+                    requestQueue.add(jsonObjectRequest1);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-        }*/
         });
     }
 }
