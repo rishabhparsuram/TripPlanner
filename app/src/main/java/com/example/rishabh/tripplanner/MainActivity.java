@@ -55,11 +55,13 @@ public class MainActivity extends AppCompatActivity {
         touchme = (Button) findViewById(R.id.enter);
         restaurant = (TextView) findViewById(R.id.FoodPlaces);
         requestQueue = Volley.newRequestQueue(this);
-        final String findplace_url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=" + city + "%20" + state + "&inputtype=textquery&fields=geometry&key=" + api_key;
         touchme.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 try {
+                    final String findplace_url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=" + city.getText().toString() + "%20" + state.getText().toString() + "&inputtype=textquery&fields=geometry&key=" + api_key;
+
+                    Log.d("here", findplace_url);
                     JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                             Request.Method.GET,
                             findplace_url,
@@ -96,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
                     //weather.setText("Please enter a Valid City");
                 }
                 String nearbysearch_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" + latitude + "," + longitude + "&radius=1500&type=restaurant&keyword=cruise&key=" + api_key;
+                Log.d("url", nearbysearch_url);
                 try {
                     JsonObjectRequest jsonObjectRequest1 = new JsonObjectRequest(
                             Request.Method.GET,
@@ -106,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
                                 public void onResponse(final JSONObject response){
                                     try{
                                         JSONObject def = response.getJSONArray("results").getJSONObject(0);
-                                        JSONObject rest = (JSONObject) def.get("name");
+                                        Object rest = def.get("name");
                                         String name = rest.toString();
                                         restaurant.setText(name);
                                         //JSONObject abc = response.getJSONArray("candidates").getJSONObject(0);
