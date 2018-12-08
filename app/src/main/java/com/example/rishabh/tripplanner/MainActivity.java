@@ -30,15 +30,14 @@ import org.json.JSONException;
 import java.io.FileReader;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private static RequestQueue requestQueue;
     private EditText city;
     private Button touchme;
-    private TextView hotel;
     private TextView restaurant;
-    private TextView weather;
     private EditText state;
     private double latitude;
     private double longitude;
@@ -50,8 +49,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         city = (EditText) findViewById(R.id.cityName);
         state = (EditText) findViewById(R.id.stateName);
-        hotel = (TextView) findViewById(R.id.hotels);
-        weather = (TextView) findViewById(R.id.weather);
         touchme = (Button) findViewById(R.id.enter);
         restaurant = (TextView) findViewById(R.id.FoodPlaces);
         requestQueue = Volley.newRequestQueue(this);
@@ -68,8 +65,8 @@ public class MainActivity extends AppCompatActivity {
                             null,
                             new Response.Listener<JSONObject>() {
                                 @Override
-                                public void onResponse(final JSONObject response){
-                                    try{
+                                public void onResponse(final JSONObject response) {
+                                    try {
                                         JSONObject abc = response.getJSONArray("candidates").getJSONObject(0);
                                         JSONObject geometry = (JSONObject) abc.get("geometry");
                                         JSONObject location = (JSONObject) geometry.get("location");
@@ -77,8 +74,7 @@ public class MainActivity extends AppCompatActivity {
                                         longitude = location.getDouble("lng");
                                         Log.d(TAG, abc.get("geometry").toString());
 
-                                    }
-                                    catch (JSONException e) {
+                                    } catch (JSONException e) {
                                         e.printStackTrace();
 
                                     }
@@ -97,21 +93,25 @@ public class MainActivity extends AppCompatActivity {
                     //restaurant.setText("Please enter a Valid City");
                     //weather.setText("Please enter a Valid City");
                 }
-                String nearbysearch_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" + latitude + "," + longitude + "&radius=1500&type=restaurant&keyword=cruise&key=" + api_key;
-                Log.d("url", nearbysearch_url);
+                String nearbyrestaurants_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" + latitude + "," + longitude + "&radius=1500&type=restaurant&keyword=cruise&key=" + api_key;
+                Log.d("url", nearbyrestaurants_url);
                 try {
                     JsonObjectRequest jsonObjectRequest1 = new JsonObjectRequest(
                             Request.Method.GET,
-                            nearbysearch_url,
+                            nearbyrestaurants_url,
                             null,
                             new Response.Listener<JSONObject>() {
                                 @Override
-                                public void onResponse(final JSONObject response){
-                                    try{
-                                        JSONObject def = response.getJSONArray("results").getJSONObject(0);
-                                        Object rest = def.get("name");
-                                        String name = rest.toString();
-                                        restaurant.setText(name);
+                                public void onResponse(final JSONObject response) {
+                                    try {
+                                        //JSONObject def = response.getJSONArray("results").getJSONObject(0);
+                                        //Object rest = def.get("name");
+                                        //String name = rest.toString();
+                                        String result = "";
+                                        for (int i = 0; i < 3; i++) {
+                                            result += (response.getJSONArray("results").getJSONObject(i).get("name").toString() + ",");
+                                        }
+                                        restaurant.setText(result.substring(0, result.length() - 1));
                                         //JSONObject abc = response.getJSONArray("candidates").getJSONObject(0);
                                         //JSONObject geometry = (JSONObject) abc.get("geometry");
                                         //JSONObject location = (JSONObject) geometry.get("location");
@@ -119,10 +119,54 @@ public class MainActivity extends AppCompatActivity {
                                         //longitude = location.getDouble("lng");
                                         //restaurant.setText(Double.toString(longitude));
 
-                                        Log.d(TAG, def.get("name").toString());
+                                        //Log.d(TAG, def.get("name").toString());
+
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
 
                                     }
-                                    catch (JSONException e) {
+
+                                    //hotel.setText(response.toString());
+                                }
+                            }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(final VolleyError error) {
+                            Log.w(TAG, error.toString());
+                        }
+                    });
+                    requestQueue.add(jsonObjectRequest1);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                String nearbyhotel_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" + latitude + "," + longitude + "&radius=1500&type=hotel&keyword=cruise&key=" + api_key;
+                Log.d("url", nearbyhotel_url);
+                try {
+                    JsonObjectRequest jsonObjectRequest1 = new JsonObjectRequest(
+                            Request.Method.GET,
+                            nearbyhotel_url,
+                            null,
+                            new Response.Listener<JSONObject>() {
+                                @Override
+                                public void onResponse(final JSONObject response) {
+                                    try {
+                                        //JSONObject def = response.getJSONArray("results").getJSONObject(0);
+                                        //Object rest = def.get("name");
+                                        //String name = rest.toString();
+                                        String[] arr = new String[3];
+                                        for (int i = 0; i < 3; i++) {
+                                            arr[i] = response.getJSONArray("results").getJSONObject(i).get("name").toString();
+                                        }
+                                        restaurant.setText(Arrays.toString(arr));
+                                        //JSONObject abc = response.getJSONArray("candidates").getJSONObject(0);
+                                        //JSONObject geometry = (JSONObject) abc.get("geometry");
+                                        //JSONObject location = (JSONObject) geometry.get("location");
+                                        //latitude = location.getDouble("lat");
+                                        //longitude = location.getDouble("lng");
+                                        //restaurant.setText(Double.toString(longitude));
+
+                                        //Log.d(TAG, def.get("name").toString());
+
+                                    } catch (JSONException e) {
                                         e.printStackTrace();
 
                                     }
